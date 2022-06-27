@@ -1,0 +1,147 @@
+
+<form action="{{ routes.cart_url }}" method="post" class="">
+<section class="drawer" id="drawer-name" data-drawer-target >
+  <div class="drawer__overlay" data-drawer-close tabindex="-1"></div>
+  <div class="drawer__wrapper" data-ajax-cart-section>
+    <div class="drawer__header">
+      <div class="drawer__title">
+        <button class="drawer__close" data-drawer-close aria-label="Close Drawer"></button>
+        <div>
+          MY CART ({{ cart.item_count }})
+        </div>
+      </div>
+      <div class="progress">
+        {% if cart.items.size == 0 %}
+          <p>Add items to your cart to receive free shipping.</p>
+        {% endif %}
+        {% if cart.items.size != 0 %}
+          {% if cart.item_count >= 6 %}
+            <p>Add <b>6 more</b> items to unlock your next prize </p>
+            {% elsif cart.item_count < 6 %}
+              <p>You're only {{ 6 | minus: cart.item_count }} more items away from free shipping.</p>
+            {% endif %}
+          {% endif %}
+          <progress class="progress__bar" max="24" value="{{ cart.item_count }}"></progress>
+        <br>
+      </div>
+    </div>
+    <div class="subscription-msg">
+        <p>Subscribe to <span class="save"><strong>save 20%</strong></span> now and on future deliveries</p>
+        <p class="save save-setup"><strong><i style="padding:2px"class="fa-solid fa-rotate"></i>Set up now</strong></p>
+      </div>
+    <div class="drawer__content">
+      {%- if cart != empty -%}
+      <div id="drawer_cart_items">
+        {%- for item in cart.items -%}
+          {%- if item.image -%}
+            <div class="item-info">
+              <img
+                src="{{ item.image | image_url: width: 140 }}"
+                alt="{{ item.image.alt | escape }}"
+                width="20"
+                height="20"
+                loading="lazy"
+              >
+              <div class="cart_item_title">
+                <a href="{{ item.url }}">{{ item.title }}</a>
+                <p> {{ item.final_line_price | money }} </p>
+              </div>
+              <div class="qty-update">
+                <div>
+                  <table class="qty-btn">
+                    <tr>
+                      <td><a data-ajax-cart-request-button
+                      href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity={{ item.quantity | minus: 1 }}"> <span class="icons">-</span> </a></td>
+                      <td><span>{{ item.quantity }}</span></td>
+                      <td><a data-ajax-cart-request-button
+                      href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity={{ item.quantity | plus: 1 }}"> <span class="icons">+</span>
+                      </a></td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="remove">
+                  <a data-ajax-cart-request-button
+                  href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity=0"> Remove </a>
+                </div>
+              </div>
+            </div>
+            <div class="product-recommendations" data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit=1" >
+              {%- if recommendations.performed and recommendations.products_count >= 0 -%}
+                <h2>You may also like</h2>
+                <div> Rendering...
+                  {%- for product in recommendations.products -%}
+                    <div class="product">
+                      <a href="{{ product.url }}">
+                        <img
+                          class="product__img"
+                          src="{{ product.featured_image | image_url: width: 140 }}"
+                          alt="{{ product.featured_image.alt | escape }}"
+                          width="20"
+                          height="20"
+                          loading="lazy"
+                        />
+
+                        <p class="product__title">{{ product.title }}</p>
+                        <p class="product__price">{{ product.price | money}}</p>
+                      </a>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+            </div>
+          {%- else -%}
+              <h4>Please add some products to your cart to continue</h4>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+  </div>
+  <div id="drawer_cart_bottom">
+        <div class="footer-cart">
+          <h4>Subtotal: <span id="drawer_total_amount"><strong>{{ cart.total_price | money }}</strong></span></h4>
+          <a href="{{ routes.cart_url }}" id="drawer_checkout_btn" class="button-footer" > {% render 'icon-padlock'%} Checkout</a>
+        </div>
+      </div>
+</section>
+</form>
+
+
+
+{% schema %}
+  {
+    "settings": []
+  }
+{% endschema %}
+
+{% stylesheet %}
+{% endstylesheet %}
+
+{% javascript %}
+  const handleIntersection = (entries, observer) => {
+    if (!entries[0].isIntersecting) return;
+
+    observer.unobserve(productRecommendationsSection);
+
+    const url = productRecommendationsSection.dataset.url;
+
+    fetch(url)
+      .then(response => response.text())
+      .then(text => {
+        const html = document.createElement('div');
+        html.innerHTML = text;
+        const recommendations = html.querySelector('.product-recommendations');
+
+        if (recommendations && recommendations.innerHTML.trim().length) {
+          productRecommendationsSection.innerHTML = recommendations.innerHTML;
+        }
+      })
+      .catch(e => {
+        console.error(e);
+      });
+  };
+
+  const productRecommendationsSection = document.querySelector('.product-recommendations');
+  const observer = new IntersectionObserver(handleIntersection, {rootMargin: '0px 0px 200px 0px'});
+
+  observer.observe(productRecommendationsSection);
+{% endjavascript %} 

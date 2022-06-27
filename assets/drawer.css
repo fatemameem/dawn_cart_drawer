@@ -1,0 +1,26 @@
+.product-container {
+  display: flex!important;
+  flex-wrap: wrap!important;
+  justify-content: space-between!important;
+}
+
+.product-container img {
+  width: 80px;
+  height: 80px;
+}
+#main-container {
+  display: none;
+}
+.cart-header {
+  display: flex!important;
+  justify-content: space-between!important;
+}
+.full-container {
+  display: flex!important;
+  justify-content: space-between!important;
+}
+
+#show-btn {
+  width: 50px;
+  height: 25px;
+}
