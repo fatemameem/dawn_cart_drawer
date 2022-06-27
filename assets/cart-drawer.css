@@ -115,6 +115,7 @@
   display: grid;
   grid-template-columns: 33% 44% 23%;
   align-items: top;
+  padding: 10px 0 10px 0;
 }
 
 .subscription-msg {
